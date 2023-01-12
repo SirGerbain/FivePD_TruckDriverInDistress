@@ -9,3 +9,14 @@ C:\Users\Gerben\source\repos\SirGerbain_TruckDriverInDistress\obj\Release\SirGer
 C:\Users\Gerben\source\repos\SirGerbain_TruckDriverInDistress\obj\Release\SirGerbain_TruckDriverInDistress.csproj.CopyComplete
 C:\Users\Gerben\source\repos\SirGerbain_TruckDriverInDistress\obj\Release\SirGerbain_TruckDriverInDistress.net.dll
 C:\Users\Gerben\source\repos\SirGerbain_TruckDriverInDistress\obj\Release\SirGerbain_TruckDriverInDistress.net.pdb
+C:\Users\Gerben\source\repos\FivePD_TruckDriverInDistress\bin\Release\SirGerbain_TruckDriverInDistress.net.dll
+C:\Users\Gerben\source\repos\FivePD_TruckDriverInDistress\bin\Release\SirGerbain_TruckDriverInDistress.net.pdb
+C:\Users\Gerben\source\repos\FivePD_TruckDriverInDistress\bin\Release\CitizenFX.Core.Client.dll
+C:\Users\Gerben\source\repos\FivePD_TruckDriverInDistress\bin\Release\FivePD.net.dll
+C:\Users\Gerben\source\repos\FivePD_TruckDriverInDistress\bin\Release\CitizenFX.Core.Client.xml
+C:\Users\Gerben\source\repos\FivePD_TruckDriverInDistress\bin\Release\FivePD.net.xml
+C:\Users\Gerben\source\repos\FivePD_TruckDriverInDistress\obj\Release\SirGerbain_TruckDriverInDistress.csproj.AssemblyReference.cache
+C:\Users\Gerben\source\repos\FivePD_TruckDriverInDistress\obj\Release\SirGerbain_TruckDriverInDistress.csproj.CoreCompileInputs.cache
+C:\Users\Gerben\source\repos\FivePD_TruckDriverInDistress\obj\Release\SirGerbain_TruckDriverInDistress.csproj.CopyComplete
+C:\Users\Gerben\source\repos\FivePD_TruckDriverInDistress\obj\Release\SirGerbain_TruckDriverInDistress.net.dll
+C:\Users\Gerben\source\repos\FivePD_TruckDriverInDistress\obj\Release\SirGerbain_TruckDriverInDistress.net.pdb

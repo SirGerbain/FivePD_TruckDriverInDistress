@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Runtime.InteropServices;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using FivePD.API;
-using FivePD.API.Utils;
-using CitizenFX.Core.NaturalMotion;
 
 namespace SirGerbain_TruckDriverInDistress
 {
