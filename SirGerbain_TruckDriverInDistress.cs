@@ -62,7 +62,6 @@ namespace SirGerbain_TruckDriverInDistress
             InitBlip();
             UpdateData();
 
-            // Spawn truck and trailer
             truckDriver = await SpawnPed(PedHash.Trucker01SMM, Location);
             truckDriver.AlwaysKeepTask = true;
             truckDriver.BlockPermanentEvents = true;
