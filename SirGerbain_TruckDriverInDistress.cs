@@ -18,6 +18,9 @@ namespace SirGerbain_TruckDriverInDistress
         List<Ped> kurumaPassengers = new List<Ped>();
         Random random = new Random();
 
+        bool initiateCallout = false;
+        bool initateChase = false;
+
         public SirGerbain_TruckDriverInDistress()
         {
             Vector3[] freewayLocations = {
@@ -47,7 +50,7 @@ namespace SirGerbain_TruckDriverInDistress
                 new Vector3(-1842.228f,-595.9995f,11.09579f)
             };
 
-            spawnPlace = freewayLocations[random.Next(0, 22)];
+            spawnPlace = World.GetNextPositionOnStreet(freewayLocations[random.Next(0, 22)]);
 
             InitInfo(spawnPlace);
             ShortName = "Truck Driver in distress";
@@ -61,66 +64,31 @@ namespace SirGerbain_TruckDriverInDistress
         {
             InitBlip();
             UpdateData();
-
-            truckDriver = await SpawnPed(PedHash.Trucker01SMM, Location);
-            truckDriver.AlwaysKeepTask = true;
-            truckDriver.BlockPermanentEvents = true;
-            truck = await SpawnVehicle(VehicleHash.Hauler, Location, 0f);
-            truck.AttachBlip();
-            trailer = await SpawnVehicle(VehicleHash.Trailers4, Location);
-            API.AttachVehicleToTrailer(truck.GetHashCode(), trailer.GetHashCode(), 1F);
-            truckDriver.SetIntoVehicle(truck, VehicleSeat.Driver);
-
-            for (int i = 0; i < 3; i++)
-            {
-
-                float offsetX = 5.0f * (float)Math.Cos(i * 120.0f * (Math.PI / 180.0)); // offset to position the Kuruma's around the truck
-                float offsetY = 5.0f * (float)Math.Sin(i * 120.0f * (Math.PI / 180.0));
-                Vector3 kurumaPosition = Location + new Vector3(offsetX, offsetY, 0);
-                Vehicle kuruma = await SpawnVehicle(VehicleHash.Kuruma, kurumaPosition);
-                kuruma.Mods.PrimaryColor = VehicleColor.MetallicBlack;
-                kuruma.Mods.SecondaryColor = VehicleColor.MetallicBlack;
-                kuruma.Mods.PearlescentColor = VehicleColor.MetallicBlack;
-                kuruma.Mods.HasNeonLight(VehicleNeonLight.Right);
-                kuruma.Mods.HasNeonLight(VehicleNeonLight.Left);
-                kuruma.Mods.HasNeonLight(VehicleNeonLight.Back);
-                kuruma.Mods.HasNeonLight(VehicleNeonLight.Front);
-                kuruma.Mods.SetNeonLightsOn(VehicleNeonLight.Right, true);
-                kuruma.Mods.SetNeonLightsOn(VehicleNeonLight.Left, true);
-                kuruma.Mods.SetNeonLightsOn(VehicleNeonLight.Back, true);
-                kuruma.Mods.SetNeonLightsOn(VehicleNeonLight.Front, true);
-                kuruma.Mods.NeonLightsColor = System.Drawing.Color.FromArgb(100, 0, 255, 0);
-
-                Ped kurumaDriver = await SpawnPed(PedHash.Korean02GMY, Location);
-                kurumaDriver.AlwaysKeepTask = true;
-                kurumaDriver.BlockPermanentEvents = true;
-                kurumaDriver.SetIntoVehicle(kuruma, VehicleSeat.Driver);
-
-                Ped kurumaPassenger = await SpawnPed(PedHash.Korean02GMY, Location);
-                kurumaPassenger.AlwaysKeepTask = true;
-                kurumaPassenger.BlockPermanentEvents = true;
-                kurumaPassenger.SetIntoVehicle(kuruma, VehicleSeat.Passenger);
-                kurumaPassenger.Weapons.Give(WeaponHash.Pistol, 100, true, true);
-
-                kurumas.Add(kuruma);
-                kurumaDrivers.Add(kurumaDriver);
-                kurumaPassengers.Add(kurumaPassenger);
-            }
-
         }
 
         public async override void OnStart(Ped player)
         {
+            setupCallout();
             base.OnStart(player);
 
-            truckDriver.Task.CruiseWithVehicle(truck, 100f, 524828);
-            for (int i = 0; i < kurumas.Count; i++)
+            while (!initiateCallout)
             {
-                kurumaDrivers[i].Task.VehicleChase(truckDriver);
-                kurumas[i].AttachBlip();
+                await BaseScript.Delay(1000);
+                float distance = Game.PlayerPed.Position.DistanceToSquared(spawnPlace);
+                if (distance > 300f)
+                {
+                    truckDriver.Task.CruiseWithVehicle(truck, 100f, 524828);
+                    for (int i = 0; i < kurumas.Count; i++)
+                    {
+                        kurumaDrivers[i].Task.VehicleChase(truckDriver);
+                        kurumas[i].AttachBlip();
+                    }
+                    initiateCallout = true;
+                    break;
+                }
             }
 
-            while (true)
+            while (!initateChase && initiateCallout)
             {
                 await BaseScript.Delay(random.Next(10000, 23000));
                 int theChosenOne = random.Next(0, kurumaPassengers.Count);
@@ -129,6 +97,66 @@ namespace SirGerbain_TruckDriverInDistress
                 kurumaPassengers[theChosenOne].Task.ClearAll();
             }
 
+        }
+
+        public async void setupCallout()
+        {
+            truckDriver = await SpawnPed(PedHash.Trucker01SMM, World.GetNextPositionOnStreet(spawnPlace));
+            truckDriver.AlwaysKeepTask = true;
+            truckDriver.BlockPermanentEvents = true;
+
+            Vector3 coords = truckDriver.Position;
+            Vector3 closestVehicleNodeCoords;
+            float roadheading;
+            OutputArgument tempcoords = new OutputArgument();
+            OutputArgument temproadheading = new OutputArgument();
+            Function.Call<Vector3>(Hash.GET_CLOSEST_VEHICLE_NODE_WITH_HEADING, coords.X, coords.Y, coords.Z, tempcoords, temproadheading, 1, 3, 0);
+            closestVehicleNodeCoords = tempcoords.GetResult<Vector3>();
+            roadheading = temproadheading.GetResult<float>();
+
+            truck = await SpawnVehicle(VehicleHash.Hauler, World.GetNextPositionOnStreet(spawnPlace));
+            truck.AttachBlip();
+            truck.Heading = roadheading;
+            truckDriver.SetIntoVehicle(truck, VehicleSeat.Driver);
+            trailer = await SpawnVehicle(VehicleHash.Trailers4, World.GetNextPositionOnStreet(spawnPlace));
+            API.AttachVehicleToTrailer(truck.GetHashCode(), trailer.GetHashCode(), 1F);
+
+            for (int i = 0; i < 3; i++)
+            {
+
+                float offsetX = 5.0f * (float)Math.Cos(i * 120.0f * (Math.PI / 180.0)); // offset to position the Kuruma's around the truck
+                float offsetY = 5.0f * (float)Math.Sin(i * 120.0f * (Math.PI / 180.0));
+                Vector3 kurumaPosition = spawnPlace + new Vector3(offsetX, offsetY, 0);
+                Vehicle kuruma = await SpawnVehicle(VehicleHash.Kuruma, kurumaPosition);
+                        kuruma.Mods.PrimaryColor = VehicleColor.MetallicBlack;
+                        kuruma.Mods.SecondaryColor = VehicleColor.MetallicBlack;
+                        kuruma.Mods.PearlescentColor = VehicleColor.MetallicBlack;
+                        kuruma.Mods.HasNeonLight(VehicleNeonLight.Right);
+                        kuruma.Mods.HasNeonLight(VehicleNeonLight.Left);
+                        kuruma.Mods.HasNeonLight(VehicleNeonLight.Back);
+                        kuruma.Mods.HasNeonLight(VehicleNeonLight.Front);
+                        kuruma.Mods.SetNeonLightsOn(VehicleNeonLight.Right, true);
+                        kuruma.Mods.SetNeonLightsOn(VehicleNeonLight.Left, true);
+                        kuruma.Mods.SetNeonLightsOn(VehicleNeonLight.Back, true);
+                        kuruma.Mods.SetNeonLightsOn(VehicleNeonLight.Front, true);
+                        kuruma.Mods.NeonLightsColor = System.Drawing.Color.FromArgb(100, 0, 255, 0);
+                        kuruma.Heading = roadheading;
+
+                Ped kurumaDriver = await SpawnPed(PedHash.Korean02GMY, spawnPlace);
+                    kurumaDriver.AlwaysKeepTask = true;
+                    kurumaDriver.BlockPermanentEvents = true;
+                    kurumaDriver.SetIntoVehicle(kuruma, VehicleSeat.Driver);
+
+                Ped kurumaPassenger = await SpawnPed(PedHash.Korean02GMY, spawnPlace);
+                    kurumaPassenger.AlwaysKeepTask = true;
+                    kurumaPassenger.BlockPermanentEvents = true;
+                    kurumaPassenger.SetIntoVehicle(kuruma, VehicleSeat.Passenger);
+                    kurumaPassenger.Weapons.Give(WeaponHash.Pistol, 100, true, true);
+
+                kurumas.Add(kuruma);
+                kurumaDrivers.Add(kurumaDriver);
+                kurumaPassengers.Add(kurumaPassenger);
+            }
         }
 
     }
