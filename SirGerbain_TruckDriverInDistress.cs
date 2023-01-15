@@ -69,6 +69,7 @@ namespace SirGerbain_TruckDriverInDistress
         public async override void OnStart(Ped player)
         {
             setupCallout();
+            await BaseScript.Delay(3000);
             base.OnStart(player);
 
             while (!initiateCallout)
