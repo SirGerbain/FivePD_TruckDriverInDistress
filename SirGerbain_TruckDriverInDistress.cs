@@ -91,11 +91,32 @@ namespace SirGerbain_TruckDriverInDistress
 
             while (!initateChase && initiateCallout)
             {
-                await BaseScript.Delay(random.Next(10000, 23000));
-                int theChosenOne = random.Next(0, kurumaPassengers.Count);
-                kurumaPassengers[theChosenOne].Task.VehicleShootAtPed(truckDriver);
-                await BaseScript.Delay(4000);
-                kurumaPassengers[theChosenOne].Task.ClearAll();
+                await BaseScript.Delay(1000);
+
+                if (random.Next(0, kurumas.Count)<50)
+                {
+                    int randomPassenger = random.Next(0, kurumas.Count);
+                    float distance = Game.PlayerPed.Position.DistanceToSquared(kurumas[randomPassenger].Position);
+                    if (distance < 120f)
+                    {
+                        await BaseScript.Delay(random.Next(3000, 5000));
+                        kurumaDrivers[randomPassenger].Task.VehicleChase(player);
+                        kurumaPassengers[randomPassenger].Task.VehicleShootAtPed(player);
+                        await BaseScript.Delay(10000);
+                        kurumaPassengers[randomPassenger].Task.ClearAll();
+                        kurumaDrivers[randomPassenger].Task.ClearAll();
+                        kurumaDrivers[randomPassenger].Task.VehicleChase(truckDriver);
+                    }
+                }
+                else
+                {
+                    await BaseScript.Delay(random.Next(10000, 23000));
+                    int theChosenOne = random.Next(0, kurumaPassengers.Count);
+                    kurumaPassengers[theChosenOne].Task.VehicleShootAtPed(truckDriver);
+                    await BaseScript.Delay(4000);
+                    kurumaPassengers[theChosenOne].Task.ClearAll();
+                }
+
             }
 
         }
