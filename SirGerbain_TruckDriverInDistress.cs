@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using FivePD.API;
+using FivePD.API.Utils;
+using System.Runtime.ConstrainedExecution;
 
 namespace SirGerbain_TruckDriverInDistress
 {
@@ -75,14 +77,13 @@ namespace SirGerbain_TruckDriverInDistress
             while (!initiateCallout)
             {
                 await BaseScript.Delay(1000);
-                float distance = Game.PlayerPed.Position.DistanceToSquared(spawnPlace);
-                if (distance > 300f)
+                float distance = Game.PlayerPed.Position.DistanceTo(spawnPlace);
+                if (distance < 500f)
                 {
                     truckDriver.Task.CruiseWithVehicle(truck, 100f, 524828);
                     for (int i = 0; i < kurumas.Count; i++)
                     {
                         kurumaDrivers[i].Task.VehicleChase(truckDriver);
-                        kurumas[i].AttachBlip();
                     }
                     initiateCallout = true;
                     break;
@@ -93,15 +94,18 @@ namespace SirGerbain_TruckDriverInDistress
             {
                 await BaseScript.Delay(1000);
 
-                if (random.Next(0, kurumas.Count)<50)
+                if (random.Next(0, 100)<20)
                 {
                     int randomPassenger = random.Next(0, kurumas.Count);
-                    float distance = Game.PlayerPed.Position.DistanceToSquared(kurumas[randomPassenger].Position);
+                    float distance = Game.PlayerPed.Position.DistanceTo(kurumas[randomPassenger].Position);
                     if (distance < 120f)
                     {
                         await BaseScript.Delay(random.Next(3000, 5000));
                         kurumaDrivers[randomPassenger].Task.VehicleChase(player);
-                        kurumaPassengers[randomPassenger].Task.VehicleShootAtPed(player);
+                        if (random.Next(0, 100) < 20)
+                        {
+                            kurumaPassengers[randomPassenger].Task.VehicleShootAtPed(player);
+                        }
                         await BaseScript.Delay(10000);
                         kurumaPassengers[randomPassenger].Task.ClearAll();
                         kurumaDrivers[randomPassenger].Task.ClearAll();
@@ -137,7 +141,7 @@ namespace SirGerbain_TruckDriverInDistress
             roadheading = temproadheading.GetResult<float>();
 
             truck = await SpawnVehicle(VehicleHash.Hauler, World.GetNextPositionOnStreet(spawnPlace));
-            truck.AttachBlip();
+            truck.AttachBlip().IsFriendly = true;
             truck.Heading = roadheading;
             truckDriver.SetIntoVehicle(truck, VehicleSeat.Driver);
             trailer = await SpawnVehicle(VehicleHash.Trailers4, World.GetNextPositionOnStreet(spawnPlace));
@@ -163,6 +167,12 @@ namespace SirGerbain_TruckDriverInDistress
                         kuruma.Mods.SetNeonLightsOn(VehicleNeonLight.Front, true);
                         kuruma.Mods.NeonLightsColor = System.Drawing.Color.FromArgb(100, 0, 255, 0);
                         kuruma.Heading = roadheading;
+                        kuruma.AttachBlip().IsFriendly = false;
+
+                VehicleData vehicleData = new VehicleData();
+                            vehicleData.Registration = false;
+                Utilities.SetVehicleData(kuruma.NetworkId, vehicleData);
+                Utilities.ExcludeVehicleFromTrafficStop(kuruma.NetworkId, true);
 
                 Ped kurumaDriver = await SpawnPed(PedHash.Korean02GMY, spawnPlace);
                     kurumaDriver.AlwaysKeepTask = true;
